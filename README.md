@@ -1,7 +1,5 @@
 <img width="1626" height="192" alt="image" src="https://github.com/user-attachments/assets/33ab8d82-af36-440d-82d2-950d6adeabd9" />
-
-
-# Peer Support Circles — VibeHack London 2026
+Have a seat at the Circle.
 
 Anonymous, AI-facilitated peer support groups for students. No sign-up. No real names. Just people who get it.
 
@@ -16,17 +14,8 @@ npm run dev
 
 Then open **http://localhost:5173** in your browser.
 
-## Tech Stack
-
-- **Frontend:** React + TanStack Start + Vite + Tailwind CSS
-- **UI Components:** Radix UI + shadcn/ui
-- **AI:** Anthropic Claude API (facilitator + safety layer)
-- **Real-time:** Socket.IO (coming soon)
-
 ## Track
-
 **Health Impact** — Student Mental Health Support
 
 ## Team
-
 Built at VibeHack London 2026.
