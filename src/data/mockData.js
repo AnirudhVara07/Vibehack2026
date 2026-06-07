@@ -121,7 +121,7 @@ export const SCRIPT = [
   {
     id: "m5",
     kind: "connection",
-    label: "The Guide noticed something",
+    label: "The Circle noticed something",
     quotes: [
       { sender: "Quiet Harbor", text: "I just feel unmoored." },
       {

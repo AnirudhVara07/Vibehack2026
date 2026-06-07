@@ -16,7 +16,7 @@ function GuideTag({ hue }) {
   return (
     <span className="guide-tag">
       <span className="guide-ring" style={{ borderColor: mix(hue.base, 70) }} />
-      Guide
+      Circle
     </span>
   );
 }
@@ -128,11 +128,11 @@ function CircleChat({
 
   // Initialize WebSocket
   React.useEffect(() => {
-    // Auto-detect: local dev → ws://localhost:3001, tunnel → env var
+    // Auto-detect: local dev → ws://{host}:3001, tunnel → env var
     const host = window.location.hostname;
     const isLocal = host === 'localhost' || host === '127.0.0.1' || host.startsWith('10.') || host.startsWith('192.168.');
     const wsUrl = isLocal
-      ? 'ws://localhost:3001'
+      ? `ws://${host}:3001`
       : (import.meta.env.VITE_WS_TUNNEL_URL || `wss://${host}:3001`);
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
@@ -157,10 +157,10 @@ function CircleChat({
     if (el) el.scrollTop = el.scrollHeight;
   }, [messages, typing]);
 
-  // Initial welcome message from the guide
+  // Initial welcome message from the circle
   React.useEffect(() => {
     setMessages([
-      { id: "g0", kind: "guide", text: "Welcome to the circle. I am your guide. Take a deep breath, and whenever you're ready, say hello." }
+      { id: "g0", kind: "guide", text: "Welcome to the circle. I am the circle. Take a deep breath, and whenever you're ready, say hello." }
     ]);
   }, []);
 

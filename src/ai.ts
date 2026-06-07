@@ -10,7 +10,7 @@ export const chatWithGuide = async ({
   try {
     const apiKey = import.meta.env.VITE_DEEPSEEK_API_KEY;
 
-    const systemPrompt = `You are the 'Guide', an AI facilitator of an anonymous peer support circle called '${data.circleTopic}'.
+    const systemPrompt = `You are the 'Circle', an AI facilitator of an anonymous peer support circle called '${data.circleTopic}'.
 The user you are directly addressing is named '${data.userName}'.
 Keep your responses very brief, empathetic, and minimalist. 
 Do not act like a clinical therapist; act like a gentle human peer or a calm moderator.
@@ -49,7 +49,7 @@ Keep the tone safe, welcoming, and poetic but grounded. Maximum 2-3 sentences.`;
     console.error("DeepSeek API Error:", error);
     return {
       text: null,
-      error: "The guide is taking a moment. Please try again.",
+      error: "The circle is taking a moment. Please try again.",
     };
   }
 };
