@@ -1,0 +1,129 @@
+@import "tailwindcss" source(none);
+@import "./chat-styles.css";
+@source "../src";
+@import "tw-animate-css";
+
+@font-face {
+  font-family: "Outfit";
+  src: url("/fonts/Outfit-VariableFont_wght.ttf") format("truetype");
+  font-weight: 100 900;
+  font-style: normal;
+}
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-sage-50: var(--sage-50);
+  --color-sage-100: var(--sage-100);
+  --color-sage-200: var(--sage-200);
+  --color-sage-800: var(--sage-800);
+  --color-sage-950: var(--sage-950);
+  --color-cream: var(--cream);
+
+  --font-serif: "Outfit", ui-serif, Georgia, serif;
+  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
+}
+
+:root {
+  --radius: 0.625rem;
+
+  --sage-50: oklch(0.965 0.015 130);
+  --sage-100: oklch(0.935 0.018 130);
+  --sage-200: oklch(0.875 0.025 130);
+  --sage-800: oklch(0.38 0.022 145);
+  --sage-950: oklch(0.22 0.018 145);
+  --cream: oklch(0.985 0.008 85);
+
+  --background: var(--cream);
+  --foreground: var(--sage-950);
+  --card: var(--cream);
+  --card-foreground: var(--sage-950);
+  --popover: var(--cream);
+  --popover-foreground: var(--sage-950);
+  --primary: var(--sage-800);
+  --primary-foreground: var(--cream);
+  --secondary: var(--sage-100);
+  --secondary-foreground: var(--sage-800);
+  --muted: var(--sage-50);
+  --muted-foreground: oklch(0.5 0.018 145);
+  --accent: var(--sage-100);
+  --accent-foreground: var(--sage-800);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.984 0.003 247.858);
+  --border: oklch(0.92 0.012 145);
+  --input: oklch(0.92 0.012 145);
+  --ring: var(--sage-800);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  body {
+    background-color: var(--color-cream);
+    color: var(--color-sage-950);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-11px);
+  }
+}
+
+@keyframes float-alt {
+  0%, 100% {
+    transform: translateY(0) translateX(0);
+  }
+  50% {
+    transform: translateY(-9px) translateX(3px);
+  }
+}
+
+@keyframes breathe {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.025);
+  }
+}
+
+@keyframes text-pulse {
+  0%, 100% {
+    opacity: 0.26;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
