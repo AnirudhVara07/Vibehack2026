@@ -1,14 +1,57 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, useMotionValue, animate } from "framer-motion";
 
 export const Route = createFileRoute("/select-group")({
   component: SelectGroup,
 });
 
+function seed(str: string) {
+  let h = 2166136261;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return (h >>> 0) / 4294967295;
+}
+
+const SIZES = [132, 155, 108, 32, 24, 28, 20];
+
 function SelectGroup() {
   const navigate = useNavigate();
   const [joinedGroup, setJoinedGroup] = useState<string | null>(null);
+
+  const containerRef = useRef<HTMLDivElement>(null);
+  const bubblesRef = useRef<(HTMLDivElement | null)[]>([]);
+  const physicsRef = useRef<any[]>([]);
+
+  // Affirmation phrases
+  const AFFIRMATIONS = [
+    "You are not alone in this.",
+    "It's okay to not be okay.",
+    "Your feelings are valid.",
+    "You deserve to be heard.",
+    "Small steps still count.",
+    "You are stronger than you think.",
+    "Healing isn't linear.",
+    "You matter more than you know.",
+    "Rest is productive too.",
+    "Be gentle with yourself today.",
+  ];
+  const [affirmation, setAffirmation] = useState("");
+
+  useEffect(() => {
+    const pick = () => setAffirmation(AFFIRMATIONS[Math.floor(Math.random() * AFFIRMATIONS.length)]);
+    pick();
+    const interval = setInterval(pick, 12000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("mindcircle_user_session");
+    localStorage.removeItem("mock_users");
+    navigate({ to: "/" });
+  };
 
   // AI Analysis state
   const [worryInput, setWorryInput] = useState("");
@@ -22,13 +65,131 @@ function SelectGroup() {
   const x = useMotionValue(0);
   const y = useMotionValue(0);
 
-  // Refs for drop targets
-  const groupRefs = {
-    [groupOptions[0]]: useRef<HTMLDivElement>(null),
-    [groupOptions[1]]: useRef<HTMLDivElement>(null),
-    [groupOptions[2]]: useRef<HTMLDivElement>(null),
-  };
+  // Remove old groupRefs, replace with a single index check logic
   const youBubbleRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+
+    const items = [
+      { id: groupOptions[0], size: SIZES[0], start: [20, 15] },
+      { id: groupOptions[1], size: SIZES[1], start: [70, 20] },
+      { id: groupOptions[2], size: SIZES[2], start: [45, 35] },
+      { id: "dec1", size: SIZES[3], start: [15, 60] },
+      { id: "dec2", size: SIZES[4], start: [40, 50] },
+      { id: "dec3", size: SIZES[5], start: [80, 25] },
+      { id: "dec4", size: SIZES[6], start: [30, 15] },
+    ];
+
+    physicsRef.current = items.map((c) => {
+      const radius = c.size / 2;
+      const x = (c.start[0] / 100) * rect.width;
+      const y = (c.start[1] / 100) * rect.height;
+
+      const s = seed(c.id);
+      const angle = s * Math.PI * 2;
+      const speedMultiplier = 0.5;
+      const speed = (0.5 + s) * speedMultiplier;
+
+      return {
+        id: c.id,
+        x,
+        y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        radius,
+        mass: c.size,
+      };
+    });
+  }, [groupOptions]);
+
+  useEffect(() => {
+    let animationFrameId: number;
+
+    const updatePhysics = () => {
+      if (!containerRef.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      const phys = physicsRef.current;
+
+      for (let i = 0; i < phys.length; i++) {
+        const p = phys[i];
+        p.x += p.vx;
+        p.y += p.vy;
+
+        if (p.x - p.radius < 0) {
+          p.x = p.radius;
+          p.vx *= -1;
+        } else if (p.x + p.radius > rect.width) {
+          p.x = rect.width - p.radius;
+          p.vx *= -1;
+        }
+
+        if (p.y - p.radius < 0) {
+          p.y = p.radius;
+          p.vy *= -1;
+        } else if (p.y + p.radius > rect.height) {
+          p.y = rect.height - p.radius;
+          p.vy *= -1;
+        }
+      }
+
+      for (let i = 0; i < phys.length; i++) {
+        for (let j = i + 1; j < phys.length; j++) {
+          const p1 = phys[i];
+          const p2 = phys[j];
+
+          const dx = p2.x - p1.x;
+          const dy = p2.y - p1.y;
+          const distance = Math.hypot(dx, dy);
+          const minDist = p1.radius + p2.radius;
+
+          if (distance < minDist) {
+            const angle = Math.atan2(dy, dx);
+            const sin = Math.sin(angle);
+            const cos = Math.cos(angle);
+
+            const v1 = { x: p1.vx * cos + p1.vy * sin, y: p1.vy * cos - p1.vx * sin };
+            const v2 = { x: p2.vx * cos + p2.vy * sin, y: p2.vy * cos - p2.vx * sin };
+
+            const m1 = p1.mass;
+            const m2 = p2.mass;
+            const vTotal = v1.x - v2.x;
+            
+            const v1x = ((m1 - m2) * v1.x + 2 * m2 * v2.x) / (m1 + m2);
+            const v2x = vTotal + v1x;
+
+            p1.vx = v1x * cos - v1.y * sin;
+            p1.vy = v1.y * cos + v1x * sin;
+            p2.vx = v2x * cos - v2.y * sin;
+            p2.vy = v2.y * cos + v2x * sin;
+
+            const overlap = minDist - distance;
+            const sepX = (overlap / 2) * cos;
+            const sepY = (overlap / 2) * sin;
+            
+            p1.x -= sepX;
+            p1.y -= sepY;
+            p2.x += sepX;
+            p2.y += sepY;
+          }
+        }
+      }
+
+      for (let i = 0; i < phys.length; i++) {
+        const p = phys[i];
+        const el = bubblesRef.current[i];
+        if (el) {
+          el.style.transform = `translate(${p.x - p.radius}px, ${p.y - p.radius}px)`;
+        }
+      }
+
+      animationFrameId = requestAnimationFrame(updatePhysics);
+    };
+
+    animationFrameId = requestAnimationFrame(updatePhysics);
+    return () => cancelAnimationFrame(animationFrameId);
+  }, []);
 
   const handleAnalyzeWorries = async () => {
     if (!worryInput.trim()) return;
@@ -110,22 +271,21 @@ function SelectGroup() {
 
     let hitGroup = null;
 
-    for (const [groupName, ref] of Object.entries(groupRefs)) {
-      if (ref.current) {
-        const targetRect = ref.current.getBoundingClientRect();
+    for (let i = 0; i < 3; i++) {
+      const ref = bubblesRef.current[i];
+      if (ref) {
+        const targetRect = ref.getBoundingClientRect();
         const targetCenter = {
           x: targetRect.left + targetRect.width / 2,
           y: targetRect.top + targetRect.height / 2,
         };
-        // Calculate distance between bubble center and target center
         const dist = Math.hypot(
           youCenter.x - targetCenter.x,
           youCenter.y - targetCenter.y
         );
 
-        // Generous collision distance (150px)
-        if (dist < 150) {
-          hitGroup = groupName;
+        if (dist < (SIZES[i] / 2) + 25) { // Radius of target + Radius of you bubble (25px)
+          hitGroup = groupOptions[i];
           break;
         }
       }
@@ -134,7 +294,7 @@ function SelectGroup() {
     if (hitGroup) {
       setJoinedGroup(hitGroup);
       setTimeout(() => {
-        navigate({ to: "/group" });
+        navigate({ to: "/group", search: { topic: hitGroup } as any });
       }, 600);
     } else {
       animate(x, 0, { type: "spring", stiffness: 400, damping: 40 });
@@ -160,25 +320,52 @@ function SelectGroup() {
             circle
           </a>
         </div>
+        <div className="absolute top-6 right-6 z-[100] pointer-events-auto">
+          <button
+            onClick={handleLogout}
+            className="text-xs font-medium px-4 py-1.5 rounded-full ring-1 ring-red-200 bg-transparent text-red-400 hover:bg-red-50 transition-colors"
+          >
+            Log out
+          </button>
+        </div>
         <div className="absolute bottom-10 left-1/2 -translate-x-1/2 w-full text-center pointer-events-none">
           <span style={{ color: "rgba(75,172,213,0.40)", fontSize: "11px" }}>
             drag your bubble to a group to join
           </span>
         </div>
 
-        <div className="relative w-full h-full max-w-5xl mx-auto overflow-hidden">
+        {/* Affirmation phrases - bottom left */}
+        <div className="absolute bottom-6 left-6 max-w-[220px] pointer-events-none z-[100]">
+          <p
+            className="text-xs italic text-[#4BACD5]/50"
+            key={affirmation}
+            style={{ animation: "fadeInOut 12s ease-in-out" }}
+          >
+            "{affirmation}"
+          </p>
+        </div>
+        <style>{`
+          @keyframes fadeInOut {
+            0% { opacity: 0; }
+            10% { opacity: 1; }
+            85% { opacity: 1; }
+            100% { opacity: 0; }
+          }
+        `}</style>
+
+        <div className="relative w-full h-full max-w-5xl mx-auto overflow-hidden" ref={containerRef}>
           
           {/* Group 1 (Purple theme) */}
           <motion.div
-            ref={groupRefs[groupOptions[0]]}
+            ref={(el) => { bubblesRef.current[0] = el; }}
             className="absolute rounded-full flex flex-col items-center justify-center transition-transform"
             animate={joinedGroup === groupOptions[0] ? { scale: [1, 1.15, 1], transition: { duration: 0.5 } } : { scale: 1 }}
             style={{
-              width: "132px", height: "132px",
-              left: "20%", top: "15%",
+              width: SIZES[0], height: SIZES[0],
+              top: 0, left: 0,
               border: "2px solid rgba(171,139,240,0.58)",
               backgroundColor: "rgba(171,139,240,0.08)",
-              animation: "float 8s ease-in-out infinite",
+              willChange: "transform",
             }}
           >
             <div className="absolute rounded-full pointer-events-none" style={{ inset: "-8px", border: "5px solid rgba(171,139,240,0.15)" }} />
@@ -189,15 +376,15 @@ function SelectGroup() {
 
           {/* Group 2 (Dark Blue theme) */}
           <motion.div
-            ref={groupRefs[groupOptions[1]]}
+            ref={(el) => { bubblesRef.current[1] = el; }}
             className="absolute rounded-full flex flex-col items-center justify-center transition-transform"
             animate={joinedGroup === groupOptions[1] ? { scale: [1, 1.15, 1], transition: { duration: 0.5 } } : { scale: 1 }}
             style={{
-              width: "155px", height: "155px",
-              left: "70%", top: "20%",
+              width: SIZES[1], height: SIZES[1],
+              top: 0, left: 0,
               border: "2px solid rgba(75,130,220,0.62)",
               backgroundColor: "rgba(75,130,220,0.08)",
-              animation: "float 9.5s ease-in-out infinite 1.2s",
+              willChange: "transform",
             }}
           >
             <div className="absolute rounded-full pointer-events-none" style={{ inset: "-8px", border: "5px solid rgba(75,130,220,0.15)" }} />
@@ -208,15 +395,15 @@ function SelectGroup() {
 
           {/* Group 3 (Green theme) */}
           <motion.div
-            ref={groupRefs[groupOptions[2]]}
+            ref={(el) => { bubblesRef.current[2] = el; }}
             className="absolute rounded-full flex flex-col items-center justify-center transition-transform"
             animate={joinedGroup === groupOptions[2] ? { scale: [1, 1.15, 1], transition: { duration: 0.5 } } : { scale: 1 }}
             style={{
-              width: "108px", height: "108px",
-              left: "45%", top: "35%",
+              width: SIZES[2], height: SIZES[2],
+              top: 0, left: 0,
               border: "2px solid rgba(80,195,150,0.55)",
               backgroundColor: "rgba(80,195,150,0.08)",
-              animation: "float 7.5s ease-in-out infinite 0.7s",
+              willChange: "transform",
             }}
           >
             <div className="absolute rounded-full pointer-events-none" style={{ inset: "-7px", border: "4px solid rgba(80,195,150,0.15)" }} />
@@ -226,20 +413,24 @@ function SelectGroup() {
 
           {/* Small individual bubbles (Mixed themes) */}
           <div
+            ref={(el) => { bubblesRef.current[3] = el; }}
             className="absolute rounded-full"
-            style={{ width: "32px", height: "32px", left: "120px", top: "350px", border: "1px solid rgba(171,139,240,0.7)", backgroundColor: "rgba(171,139,240,0.1)", animation: "float-alt 6.2s ease-in-out infinite 0.1s" }}
+            style={{ width: SIZES[3], height: SIZES[3], top: 0, left: 0, border: "1px solid rgba(171,139,240,0.7)", backgroundColor: "rgba(171,139,240,0.1)", willChange: "transform" }}
           />
           <div
+            ref={(el) => { bubblesRef.current[4] = el; }}
             className="absolute rounded-full"
-            style={{ width: "24px", height: "24px", left: "400px", top: "280px", border: "1px solid rgba(80,195,150,0.7)", backgroundColor: "rgba(80,195,150,0.1)", animation: "float 5.8s ease-in-out infinite 2.1s" }}
+            style={{ width: SIZES[4], height: SIZES[4], top: 0, left: 0, border: "1px solid rgba(80,195,150,0.7)", backgroundColor: "rgba(80,195,150,0.1)", willChange: "transform" }}
           />
           <div
+            ref={(el) => { bubblesRef.current[5] = el; }}
             className="absolute rounded-full"
-            style={{ width: "28px", height: "28px", left: "620px", top: "150px", border: "1px solid rgba(75,130,220,0.6)", backgroundColor: "rgba(75,130,220,0.1)", animation: "float-alt 7.1s ease-in-out infinite 1.4s" }}
+            style={{ width: SIZES[5], height: SIZES[5], top: 0, left: 0, border: "1px solid rgba(75,130,220,0.6)", backgroundColor: "rgba(75,130,220,0.1)", willChange: "transform" }}
           />
           <div
+            ref={(el) => { bubblesRef.current[6] = el; }}
             className="absolute rounded-full"
-            style={{ width: "20px", height: "20px", left: "220px", top: "80px", border: "1px solid rgba(147,212,247,0.6)", backgroundColor: "rgba(147,212,247,0.1)", animation: "float 6.5s ease-in-out infinite 0.8s" }}
+            style={{ width: SIZES[6], height: SIZES[6], top: 0, left: 0, border: "1px solid rgba(147,212,247,0.6)", backgroundColor: "rgba(147,212,247,0.1)", willChange: "transform" }}
           />
 
           {/* Your bubble (Light Blue theme, no text) */}

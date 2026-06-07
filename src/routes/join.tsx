@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 
 export const Route = createFileRoute("/join")({
   component: JoinComponent,
@@ -145,6 +145,13 @@ function JoinComponent() {
   const [uniQuery, setUniQuery] = useState("");
   const [showUniDropdown, setShowUniDropdown] = useState(false);
 
+  const filteredUniversities = useMemo(() => {
+    if (!uniQuery) return UK_UNIVERSITIES;
+    return UK_UNIVERSITIES.filter((u: string) =>
+      u.toLowerCase().includes(uniQuery.toLowerCase())
+    );
+  }, [uniQuery]);
+
   // Generate initial display name
   useEffect(() => {
     if (!formData.displayName) {
@@ -191,9 +198,8 @@ function JoinComponent() {
 
   const handleSelectTimeSlot = (label: string, id: string) => {
     setFormData((prev) => ({ ...prev, timeSlot: label }));
-    if (id !== "custom") {
-      goToStep(5);
-    }
+    // For demo: custom behaves like weekends
+    goToStep(5);
   };
 
   const toggleCustomTime = (day: string, time: string) => {
@@ -263,9 +269,21 @@ function JoinComponent() {
           >
             circle
           </Link>
-          <span className="text-xs font-semibold text-[#4BACD5] uppercase tracking-widest">
-            Step {step} of 5
-          </span>
+          <div className="flex items-center gap-3">
+            <span className="text-xs font-semibold text-[#4BACD5] uppercase tracking-widest">
+              Step {step} of 5
+            </span>
+            <button
+              onClick={() => {
+                localStorage.removeItem("mindcircle_user_session");
+                localStorage.removeItem("mock_users");
+                navigate({ to: "/" });
+              }}
+              className="text-xs font-medium px-3 py-1 rounded-full ring-1 ring-red-200 bg-transparent text-red-400 hover:bg-red-50 transition-colors"
+            >
+              Log out
+            </button>
+          </div>
         </div>
 
         {/* Progress Bar Container */}
@@ -766,7 +784,7 @@ function JoinComponent() {
                     🚨 Need Immediate Help?
                   </span>
                   <p className="text-[11px] text-[#4BACD5] leading-relaxed max-w-sm mx-auto">
-                    MindCircle is a peer support community, not a crisis line.
+                    Circle is a peer support community, not a crisis line.
                     If you are in distress, reach out to{" "}
                     <strong>Samaritans</strong> at{" "}
                     <a

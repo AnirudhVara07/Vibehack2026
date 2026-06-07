@@ -20,6 +20,14 @@ function Index() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
+  const skipToAuth = () => {
+    setIntroPhase(4);
+    setShowAuth(true);
+    setAuthMode("select");
+    setShowPortal(false);
+    setShowShockwave(false);
+  };
+
   const handlePortalClick = () => {
     if (introPhase > 0 || showShockwave) return;
     setShowPortal(false);
@@ -28,20 +36,18 @@ function Index() {
     setTimeout(() => setIntroPhase(1), 650); // Phase 1: welcome to circle
     setTimeout(() => setShowShockwave(false), 1050);
 
-    setTimeout(() => setIntroPhase(2), 6000); // Phase 2: tagline
+    setTimeout(() => setIntroPhase(2), 3200); // Phase 2: tagline
 
     setTimeout(() => {
       setIntroPhase(3); // Phase 3: chat
-      setTimeout(() => setChatStep(1), 1500);
-      setTimeout(() => setChatStep(2), 4500);
-      setTimeout(() => setChatStep(3), 7500);
-    }, 11500);
+      setTimeout(() => setChatStep(1), 800);
+      setTimeout(() => setChatStep(2), 2800);
+      setTimeout(() => setChatStep(3), 4800);
+    }, 5800);
 
     setTimeout(() => {
-      setIntroPhase(4); // Phase 4: Auth menu
-      setShowAuth(true);
-      setAuthMode("select");
-    }, 23500); // After chat finishes and fades out
+      skipToAuth();
+    }, 12000);
   };
 
   const handleSignUp = () => {
@@ -149,7 +155,7 @@ function Index() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 2.5 }}
+            transition={{ duration: 1.5 }}
           >
             <h2 className="text-3xl md:text-4xl font-medium text-[#4BACD5] tracking-tight">welcome to circle</h2>
           </motion.div>
@@ -161,7 +167,7 @@ function Index() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 2.5 }}
+            transition={{ duration: 1.5 }}
           >
             <h2 className="text-2xl md:text-3xl font-medium text-[#4BACD5] tracking-tight text-center px-6">
               when you need to talk,<br />but don't know who to tell.
@@ -175,7 +181,7 @@ function Index() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 2.5 }}
+            transition={{ duration: 1.5 }}
           >
             <div className="w-full max-w-lg px-6 flex flex-col gap-6">
               <AnimatePresence>
@@ -224,6 +230,16 @@ function Index() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Skip button during intro */}
+      {introPhase >= 1 && introPhase <= 3 && (
+        <button
+          onClick={skipToAuth}
+          className="absolute bottom-10 right-8 z-30 pointer-events-auto text-xs font-medium text-[#4BACD5]/70 hover:text-[#2882B4] transition-colors px-4 py-2 rounded-full border border-[#93D4F7]/30 bg-white/80 backdrop-blur-sm"
+        >
+          Skip →
+        </button>
+      )}
 
       {/* ---------------------------------------------
           AUTH SCREEN BLOCK

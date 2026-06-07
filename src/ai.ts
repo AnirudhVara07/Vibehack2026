@@ -20,15 +20,11 @@ Keep the tone safe, welcoming, and poetic but grounded. Maximum 2-3 sentences.`;
       { role: "system", content: systemPrompt },
       ...data.messages.map((m) => ({
         role: m.kind === "self" || m.kind === "user" ? "user" : "assistant",
-        content: m.text,
-        name:
-          m.kind === "self"
-            ? data.userName.replace(/[^a-zA-Z0-9_-]/g, "")
-            : undefined,
+        content: m.kind === "self" ? `[${data.userName}]: ${m.text}` : m.text,
       })),
     ];
 
-    const res = await fetch("https://api.deepseek.com/v1/chat/completions", {
+    const res = await fetch("https://api.deepseek.com/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

@@ -81,7 +81,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       meta: [
         { charSet: "utf-8" },
         { name: "viewport", content: "width=device-width, initial-scale=1" },
-        { title: "MindCircle — A quiet space to be heard" },
+        { title: "Circle — A quiet space to be heard" },
         {
           name: "description",
           content:
@@ -89,7 +89,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         },
         {
           property: "og:title",
-          content: "MindCircle — A quiet space to be heard",
+          content: "Circle — A quiet space to be heard",
         },
         {
           property: "og:description",
